@@ -48,14 +48,13 @@
     }
 
     textarea {
-      min-height: 180px;
+      min-height: 140px;
       padding: 12px;
       border: 1px solid #d1d5db;
       border-radius: 8px;
       resize: vertical;
     }
 
-    input,
     select {
       padding: 10px;
       border: 1px solid #d1d5db;
@@ -131,8 +130,16 @@
     const audio = document.querySelector("#audio");
 
     button.addEventListener("click", async () => {
+      const text = textInput.value.trim();
+      if (!text) {
+        status.textContent = "❌ ကျေးဇူးပြု၍ စာသား ရိုက်ထည့်ပါ။";
+        status.style.color = "red";
+        return;
+      }
+
       button.disabled = true;
       status.textContent = "အသံဖန်တီးနေပါသည်... ခေတ္တစောင့်ပါ။";
+      status.style.color = "#2563eb";
       audio.removeAttribute("src");
       audio.load();
 
@@ -143,20 +150,22 @@
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            text: textInput.value,
+            text: text,
             voice: voiceInput.value,
             rate: rateInput.value,
             pitch: "+0Hz",
           }),
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-          throw new Error(data.error || "Request failed");
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.details || errData.error || "Request failed");
         }
 
-        audio.src = data.audioUrl;
+        const blob = await response.blob();
+        const audioUrl = URL.createObjectURL(blob);
+
+        audio.src = audioUrl;
         audio.load();
         audio.play();
         status.textContent = "✅ အသံဖိုင် အဆင်သင့်ဖြစ်ပါပြီ။";

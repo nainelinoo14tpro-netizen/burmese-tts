@@ -1,0 +1,6 @@
+node_modules/
+.env
+output/*.mp3
+output/*.wav
+output/*.webm
+npm-debug.log*

@@ -12,11 +12,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "2mb" }));
 app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, service: "burmese-tts" });
+  res.json({ ok: true, service: "burmese-tts-http" });
 });
 
 // Windows FileTime based Sec-MS-GEC Token Generator
@@ -54,12 +54,13 @@ app.post("/api/synthesize", async (req, res) => {
     const secMsGec = getSecMsGec();
     const connectionId = crypto.randomUUID().replace(/-/g, "");
 
+    // Native HTTPS Endpoint (WebSocket Handshake မလိုသော Direct POST Request)
     const endpointUrl = `https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4&Sec-MS-GEC=${secMsGec}&Sec-MS-GEC-Version=1-131.0.2903.86&ConnectionId=${connectionId}`;
 
     const dateStr = new Date().toUTCString();
     const reqId = crypto.randomUUID().replace(/-/g, "");
 
-    // Edge Speech SSML Payload
+    // Edge Speech SSML Header + Body Payload
     const payload = `X-Timestamp:${dateStr}\r\nContent-Type:application/ssml+xml\r\nX-RequestId:${reqId}\r\nPath:ssml\r\n\r\n${ssml}`;
 
     const controller = new AbortController();
@@ -81,7 +82,7 @@ app.post("/api/synthesize", async (req, res) => {
     clearTimeout(timeout);
 
     if (!response.ok) {
-      throw new Error(`TTS Upstream Server returned HTTP ${response.status}`);
+      throw new Error(`Upstream returned HTTP ${response.status}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -93,7 +94,6 @@ app.post("/api/synthesize", async (req, res) => {
 
     let audioData = buffer;
     if (sepIndex !== -1) {
-      // Body payload ထဲမှ audio binary ကို ရယူခြင်း
       audioData = buffer.subarray(sepIndex + headerSeparator.length);
     }
 
@@ -104,7 +104,7 @@ app.post("/api/synthesize", async (req, res) => {
 
     res.send(audioData);
   } catch (error) {
-    console.error("Server Error:", error);
+    console.error("HTTP Synthesis Error:", error);
     if (!res.headersSent) {
       res.status(500).json({
         error: "Speech synthesis failed.",
@@ -115,5 +115,5 @@ app.post("/api/synthesize", async (req, res) => {
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Burmese TTS running on port ${PORT}`);
+  console.log(`Burmese TTS HTTP Server running on port ${PORT}`);
 });

@@ -1,7 +1,7 @@
 {
   "name": "burmese-tts",
   "version": "1.0.0",
-  "description": "Burmese Text-to-Speech application using Node.js and msedge-tts",
+  "description": "Burmese Text-to-Speech application",
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
@@ -11,6 +11,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "msedge-tts": "^2.0.7"
+    "ws": "^8.18.0"
   }
 }

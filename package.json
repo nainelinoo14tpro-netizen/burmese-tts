@@ -1,7 +1,7 @@
 {
   "name": "burmese-tts",
   "version": "1.0.0",
-  "description": "Burmese Text-to-Speech application",
+  "description": "Burmese Text-to-Speech using Native HTTP REST",
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
